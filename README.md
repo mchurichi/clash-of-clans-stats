@@ -9,4 +9,4 @@ It will also expose the same information through a simple REST API.
 Keeping track of clans and members performance is a tough task.
 
 ## How?
-It uses the (Clash of Clans API)[https://developer.clashofclans.com], which although it's very basic, is still useful for this.
+It uses the [Clash of Clans API](https://developer.clashofclans.com), which although it's very basic, is still useful for this.
