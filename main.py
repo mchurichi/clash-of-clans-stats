@@ -1,27 +1,44 @@
 import requests
-import json
 import os
-from urllib import parse
-from typing import List
+from requests.models import Response
+import uvicorn
+import urllib.parse
+
+from fastapi import FastAPI
+
+app = FastAPI()
 
 
 def _get_auth_token() -> str:
     return os.getenv("API_TOKEN")
 
 
-def _get_clan_tag() -> str:
-    return parse.quote(os.getenv("CLAN_TAG"))
+def _http_get(url: str) -> Response:
+    url = f"https://api.clashofclans.com/v1/{url}"
+    print(f"fetching {url}")
+    headers = {"Authorization": f"Bearer {_get_auth_token()}"}
+
+    return requests.get(url, headers=headers)
 
 
-url = "https://api.clashofclans.com/v1/clans/{}/currentwar".format(_get_clan_tag())
-headers = {"Authorization": "Bearer {}".format(_get_auth_token())}
+def _get_clan_info(clan_tag: str):
+    tag = urllib.parse.quote(clan_tag)
+    url = f"clans/{tag}"
+    r = _http_get(url)
 
-r = requests.get(url, headers=headers)
+    return r.json()
 
-current_war = json.loads(r.text)
-members: List[dict] = current_war.get("clan").get("members")
-members.sort(key=lambda x: x.get("mapPosition"))
 
-for member in members:
-    print("#{}: {}".format(member.get("mapPosition"), member.get("name")))
-    print("Attacks: {}".format(len(member.get("attacks", []),)))
+@app.get("/")
+def read_root():
+    return {"hello": "world"}
+
+
+@app.get("/clans/{clan_tag}")
+def get_clan_info(clan_tag: str):
+    print(clan_tag)
+    return _get_clan_info(clan_tag)
+
+
+if __name__ == "__main__":
+    uvicorn.run("main:app", host="0.0.0.0", port=80, reload=True)
